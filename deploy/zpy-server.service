@@ -1,0 +1,18 @@
+[Unit]
+Description=七人找朋友 对局服务器
+After=network.target
+
+[Service]
+Type=simple
+# 改成你的实际路径与用户
+WorkingDirectory=/opt/7friends/server
+Environment=PORT=5080
+Environment=DB_PATH=/opt/7friends/server/zpy.db
+Environment=CLIENT_HTML=/opt/7friends/client/index.html
+ExecStart=/usr/bin/node --experimental-sqlite dist/server.mjs
+Restart=on-failure
+RestartSec=3
+User=www-data
+
+[Install]
+WantedBy=multi-user.target

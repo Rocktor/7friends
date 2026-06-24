@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>七人找朋友 · 升级</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --felt: #0c4636; --felt-edge: #07301f; --walnut: #1c130c; --walnut-2: #2a1d12;
+  --brass: #c9a24a; --brass-bright: #e6c878; --cream: #f4efe1; --ink: #14110c;
+  --red: #b3322c; --shadow: rgba(0,0,0,.45);
+  --serif: "Cormorant Garamond", serif; --sans: "Manrope", system-ui, sans-serif; --mono: "DM Mono", monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: var(--sans); color: var(--cream);
+  background: radial-gradient(120% 90% at 50% -10%, #3a2817 0%, var(--walnut) 55%, #0d0906 100%); overflow: hidden; }
+
+.topbar { position: fixed; inset: 0 0 auto 0; height: 60px; z-index: 30; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 26px; background: linear-gradient(180deg, rgba(10,7,4,.92), rgba(10,7,4,.35));
+  border-bottom: 1px solid rgba(201,162,74,.35); backdrop-filter: blur(6px); }
+.brand { display: flex; align-items: baseline; gap: 13px; }
+.brand h1 { font-family: var(--serif); font-weight: 600; font-size: 27px; letter-spacing: .5px; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+.brand .sub { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--brass); text-transform: uppercase; }
+.topbar .meta { display: flex; gap: 18px; align-items: center; font-size: 13px; }
+.meta .chip { font-family: var(--mono); color: var(--brass-bright); border: 1px solid rgba(201,162,74,.4); padding: 5px 12px; border-radius: 999px; }
+
+.stage { position: fixed; inset: 60px 300px 196px 0; display: grid; place-items: center; }
+.table { position: relative; width: min(74vh, 940px); aspect-ratio: 1.5 / 1; border-radius: 50%;
+  background: radial-gradient(120% 120% at 50% 38%, #14694f 0%, var(--felt) 46%, var(--felt-edge) 100%);
+  box-shadow: 0 0 0 13px var(--walnut-2), 0 0 0 15px rgba(201,162,74,.55), 0 0 0 28px var(--walnut),
+    inset 0 0 120px rgba(0,0,0,.55), 0 50px 90px -20px rgba(0,0,0,.8); }
+.table::after { content: ""; position: absolute; inset: 0; border-radius: 50%; opacity: .06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.medallion { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px;
+  border-radius: 50%; display: grid; place-items: center; text-align: center;
+  background: radial-gradient(circle at 50% 35%, #1a7a5b, #0a3a2b);
+  box-shadow: 0 0 0 2px rgba(201,162,74,.7), inset 0 0 30px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.5); z-index: 4; }
+.medallion .suit { font-size: 38px; line-height: 1; }
+.medallion .lvl { font-family: var(--serif); font-size: 13px; color: var(--brass-bright); margin-top: 3px; }
+.medallion .cap { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: rgba(244,239,225,.6); text-transform: uppercase; }
+
+.seat { position: absolute; width: 124px; transform: translate(-50%, -50%); display: flex; flex-direction: column;
+  align-items: center; gap: 6px; z-index: 5; }
+.seat .plate { width: 100%; padding: 7px 9px; border-radius: 10px; text-align: center;
+  background: linear-gradient(180deg, rgba(28,19,12,.95), rgba(16,11,7,.95)); border: 1px solid rgba(201,162,74,.35);
+  box-shadow: 0 6px 16px rgba(0,0,0,.5); position: relative; }
+.seat .name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seat .lvl { font-family: var(--mono); font-size: 10px; color: var(--brass); margin-top: 1px; }
+.seat .tag { font-size: 9px; letter-spacing: 1px; color: rgba(244,239,225,.55); text-transform: uppercase; }
+.seat.ai .name { color: #9fc7b5; }
+.seat.off .plate { opacity: .55; }
+.seat.turn .plate { border-color: var(--brass-bright); box-shadow: 0 0 0 2px rgba(230,200,120,.6), 0 0 26px rgba(230,200,120,.5); }
+.seat .dealer { position: absolute; top: -9px; right: -7px; width: 24px; height: 24px; border-radius: 50%; display: grid;
+  place-items: center; font-family: var(--serif); font-weight: 600; font-size: 13px; color: var(--ink);
+  background: radial-gradient(circle at 40% 30%, var(--brass-bright), var(--brass)); box-shadow: 0 3px 8px rgba(0,0,0,.5); }
+.seat .friend { position: absolute; top: -9px; left: -7px; font-size: 13px; }
+/* 庄队 = 反色：浅金底深字，与其余座一眼区分 */
+.seat.declarer .plate { background: linear-gradient(180deg, var(--brass-bright), #cda23f); border-color: var(--brass-bright);
+  box-shadow: 0 0 0 1px rgba(201,162,74,.6), 0 6px 16px rgba(0,0,0,.5); }
+.seat.declarer .name { color: var(--ink); }
+.seat.declarer .lvl { color: #5a4012; } .seat.declarer .tag { color: rgba(20,17,12,.6); }
+.seat .name .stars { color: var(--brass); font-size: 11px; margin-left: 4px; cursor: help; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.seat.declarer .name .stars { color: #7a4a10; text-shadow: none; }
+.seat .played { display: flex; gap: 2px; min-height: 44px; }
+
+.card { width: 44px; height: 63px; border-radius: 6px;
+  background: linear-gradient(160deg, #fbf7ec 0%, var(--cream) 60%, #e7dec6 100%); color: var(--ink); position: relative;
+  box-shadow: 0 4px 10px rgba(0,0,0,.45); border: 1px solid rgba(120,90,40,.35); flex: none; font-family: var(--serif); }
+.card .r { position: absolute; top: 3px; left: 5px; font-size: 15px; font-weight: 600; line-height: 1; }
+.card .p { position: absolute; top: 18px; left: 5px; font-size: 12px; line-height: 1; }
+.card .big { position: absolute; bottom: 4px; right: 5px; font-size: 24px; line-height: 1; opacity: .92; }
+.card.red { color: var(--red); }
+.card.trump::before { content: ""; position: absolute; inset: 0; border-radius: 6px; box-shadow: inset 0 0 0 1.5px rgba(201,162,74,.6); }
+.card.joker { background: linear-gradient(160deg, #2a1d12, #120c07); border-color: rgba(201,162,74,.55); }
+.card.joker .jk { position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 600; }
+.card.joker.bj .jk { color: var(--red); } .card.joker.lj .jk { color: var(--brass-bright); }
+
+.handbar { position: fixed; left: 0; right: 300px; bottom: 0; height: 196px; z-index: 20; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; padding-bottom: 12px; background: linear-gradient(0deg, rgba(8,5,3,.92), transparent); }
+.panel { min-height: 44px; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; justify-content: center; }
+.panel .lbl { font-family: var(--serif); font-size: 16px; color: var(--brass-bright); }
+.panel .pill { font-family: var(--mono); font-size: 12px; color: var(--cream); border: 1px solid rgba(201,162,74,.4); padding: 4px 10px; border-radius: 999px; }
+.hand { display: flex; justify-content: center; align-items: flex-end; height: 96px; }
+.hand .card { width: 56px; height: 80px; margin-left: -34px; transition: transform .13s ease, box-shadow .13s ease; cursor: pointer; }
+.hand .card:first-child { margin-left: 0; }
+.hand .card .r { font-size: 18px; } .hand .card .p { top: 22px; font-size: 14px; } .hand .card .big { font-size: 30px; }
+.hand .card:hover { transform: translateY(-12px); z-index: 9; }
+.hand .card.sel { transform: translateY(-24px); box-shadow: 0 0 0 2px var(--brass-bright), 0 12px 26px rgba(0,0,0,.6); z-index: 9; }
+.hand .card.bad { box-shadow: 0 0 0 2px var(--red), 0 8px 18px rgba(0,0,0,.5); }
+
+.btn { font-family: var(--sans); font-weight: 700; font-size: 14px; letter-spacing: .4px; color: var(--ink);
+  background: linear-gradient(180deg, var(--brass-bright), var(--brass)); border: none; padding: 10px 20px; border-radius: 9px;
+  cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.45); transition: transform .12s; }
+.btn:hover { transform: translateY(-2px); } .btn:disabled { opacity: .38; cursor: not-allowed; transform: none; }
+.btn.ghost { background: transparent; color: var(--brass-bright); border: 1px solid rgba(201,162,74,.5); box-shadow: none; }
+.btn.sm { padding: 7px 13px; font-size: 13px; }
+.suitbtn { font-size: 19px; width: 40px; height: 36px; border-radius: 8px; border: 1px solid rgba(201,162,74,.4);
+  background: rgba(255,255,255,.05); color: var(--cream); cursor: pointer; }
+.suitbtn.on { background: var(--brass); color: var(--ink); border-color: var(--brass-bright); }
+.suitbtn.red { color: #ff8a7a; } .suitbtn.on.red { color: var(--ink); }
+.numbox { font-family: var(--mono); font-size: 14px; width: 48px; text-align: center; padding: 6px; border-radius: 7px;
+  background: rgba(0,0,0,.3); border: 1px solid rgba(201,162,74,.4); color: var(--cream); }
+
+.rail { position: fixed; top: 60px; right: 0; bottom: 0; width: 300px; z-index: 25;
+  background: linear-gradient(180deg, rgba(18,12,7,.96), rgba(10,7,4,.96)); border-left: 1px solid rgba(201,162,74,.3);
+  padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }
+.rail h2 { font-family: var(--serif); font-weight: 600; font-size: 17px; color: var(--brass-bright);
+  border-bottom: 1px solid rgba(201,162,74,.25); padding-bottom: 7px; }
+.score { display: flex; flex-direction: column; gap: 5px; }
+.score .row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; padding: 6px 10px;
+  border-radius: 7px; background: rgba(255,255,255,.03); }
+.score .row.you { background: rgba(201,162,74,.14); border: 1px solid rgba(201,162,74,.3); }
+.score .row .lv { font-family: var(--mono); color: var(--brass); }
+.log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; font-family: var(--mono); font-size: 11.5px; color: rgba(244,239,225,.7); }
+.log .e { padding: 4px 0; border-bottom: 1px dotted rgba(255,255,255,.06); } .log .e b { color: var(--brass-bright); }
+
+.overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+  background: radial-gradient(80% 60% at 50% 30%, rgba(20,105,79,.25), rgba(8,5,3,.93)); backdrop-filter: blur(4px); }
+.modal { width: 380px; padding: 36px 32px; border-radius: 16px; text-align: center;
+  background: linear-gradient(180deg, #211710, #140d07); border: 1px solid rgba(201,162,74,.4);
+  box-shadow: 0 40px 90px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06); }
+.modal .mk { font-family: var(--serif); font-size: 32px; }
+.modal .mk small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 4px; color: var(--brass); text-transform: uppercase; margin-top: 6px; }
+.modal input { width: 100%; margin-top: 13px; padding: 12px 14px; border-radius: 9px; background: rgba(0,0,0,.35);
+  border: 1px solid rgba(201,162,74,.3); color: var(--cream); font-size: 14px; font-family: var(--sans); }
+.modal input:focus { outline: none; border-color: var(--brass-bright); }
+.modal .btn { width: 100%; margin-top: 15px; justify-content: center; }
+.modal .alt { margin-top: 13px; font-size: 12px; color: rgba(244,239,225,.6); } .modal .alt a { color: var(--brass-bright); cursor: pointer; text-decoration: underline; }
+.err { color: #e88; font-size: 12px; margin-top: 10px; min-height: 16px; }
+.banner { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(.96); z-index: 55; opacity: 0; pointer-events: none;
+  transition: opacity .35s, transform .35s; text-align: center; padding: 30px 50px; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(33,23,16,.97), rgba(16,11,7,.97)); border: 1px solid var(--brass);
+  box-shadow: 0 30px 80px rgba(0,0,0,.7); }
+.banner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.banner .big2 { font-family: var(--serif); font-size: 40px; color: var(--brass-bright); }
+.banner .sm2 { font-family: var(--mono); font-size: 13px; color: var(--cream); margin-top: 8px; }
+.hint { position: fixed; bottom: 12px; left: 16px; z-index: 22; font-family: var(--mono); font-size: 11px; color: rgba(244,239,225,.45); }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><h1>七人找朋友</h1><span class="sub">六副牌 · 升级</span></div>
+    <div class="meta"><span class="chip" id="phaseChip">待入座</span><span class="chip" id="trumpChip">主 —</span><span class="chip" id="youChip">—</span></div>
+  </div>
+
+  <div class="stage"><div class="table" id="table">
+    <div class="medallion"><div class="suit" id="medSuit">🂠</div><div class="lvl" id="medLvl">未定主</div><div class="cap">本局主牌</div></div>
+  </div></div>
+
+  <div class="rail">
+    <div><h2>桌面</h2><div class="score" id="score"></div></div>
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;"><h2>牌局记录</h2><div class="log" id="log"></div></div>
+  </div>
+
+  <div class="handbar">
+    <div class="panel" id="panel"></div>
+    <div class="hand" id="hand"></div>
+  </div>
+  <div class="hint" id="hint">未连接</div>
+  <div class="banner" id="banner"><div class="big2" id="bannerBig"></div><div class="sm2" id="bannerSm"></div></div>
+
+  <div class="overlay" id="overlay"><div class="modal">
+    <div class="mk">七人找朋友<small>六副牌 · 找朋友升级</small></div>
+    <input id="u" placeholder="用户名" autocomplete="username" />
+    <input id="p" type="password" placeholder="密码" autocomplete="current-password" />
+    <button class="btn" id="loginBtn">进 牌 室</button>
+    <div class="alt">还没有账号？<a id="regLink">注册一个</a></div>
+    <div class="err" id="err"></div>
+  </div></div>
+
+<script>
+const SUIT = { S:{s:'♠',red:false}, H:{s:'♥',red:true}, C:{s:'♣',red:false}, D:{s:'♦',red:true} };
+const SUITS = ['S','H','C','D'];
+const RANK_ORD = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
+const POS = [ [50,98],[15,82],[3,45],[25,9],[75,9],[97,45],[85,82] ];
+const $ = id => document.getElementById(id);
+
+let ws=null, token=null, mySeat=0, selected=new Set(), V=null, R=null, callDraft=[{suit:'H',nth:1},{suit:'D',nth:1}];
+
+// ── 牌型/工具 ──
+function isTrump(c){ if(!V||!V.trump) return false; if(c.kind==='joker') return true; return c.rank===V.level || c.suit===V.trump; }
+function strength(c){ // 仅用于理牌排序
+  if(c.kind==='joker') return c.joker==='BJ'?6000:5000;
+  if(V&&V.trump){ if(c.rank===V.level) return c.suit===V.trump?4000:3000; if(c.suit===V.trump) return 2000+RANK_ORD[c.rank]; }
+  return RANK_ORD[c.rank];
+}
+function sortHand(hand){ // 理牌：主牌一组(强→弱)，其余按花色+点数；返回 [{c, idx}]
+  return hand.map((c,idx)=>({c,idx})).sort((a,b)=>{
+    const ta=isTrump(a.c), tb=isTrump(b.c);
+    if(ta!==tb) return ta?-1:1;
+    if(ta) return strength(b.c)-strength(a.c);
+    if(a.c.suit!==b.c.suit) return SUITS.indexOf(a.c.suit)-SUITS.indexOf(b.c.suit);
+    return RANK_ORD[a.c.rank]-RANK_ORD[b.c.rank];
+  });
+}
+function cardEl(c){
+  const el=document.createElement('div'); el.className='card';
+  if(c.kind==='joker'){ el.classList.add('joker', c.joker==='BJ'?'bj':'lj'); const j=document.createElement('div'); j.className='jk'; j.textContent='王'; el.appendChild(j); }
+  else { const m=SUIT[c.suit]; if(m.red) el.classList.add('red'); el.innerHTML=`<div class="r">${c.rank}</div><div class="p">${m.s}</div><div class="big">${m.s}</div>`; }
+  if(isTrump(c)) el.classList.add('trump');
+  return el;
+}
+const callRank = ()=> V && V.level==='A' ? 'K' : 'A';
+
+// ── 渲染 ──
+function render(){
+  if(!R) return; const room=R;
+  $('phaseChip').textContent = ({declare:'亮主',bury:'扣底',call:'叫朋友',play:'出牌',done:'本局结束'})[V&&V.phase] || (room.phase==='playing'?'进行中':'待入座');
+  if(V&&V.trump){ const m=SUIT[V.trump]; $('trumpChip').innerHTML='主 '+`<span style="color:${m.red?'#e88':'#eee'}">${m.s}</span>`;
+    $('medSuit').textContent=m.s; $('medSuit').style.color=m.red?'#ff8a7a':'#f4efe1'; $('medLvl').textContent='打 '+V.level; }
+  else { $('trumpChip').textContent='主 —'; $('medSuit').textContent='🂠'; $('medLvl').textContent='未定主'; }
+  $('youChip').textContent='你 · 座'+mySeat;
+
+  // 座位
+  $('table').querySelectorAll('.seat').forEach(e=>e.remove());
+  const reveal = new Set([ ...((V&&V.friendsRevealed)||[]), ...((R.result&&R.result.friends.filter(f=>f!=null))||[]) ]);
+  const declarers = new Set([room.dealer, ...reveal]); // 庄队 = 庄 + 已揭示朋友
+  for(let i=0;i<7;i++){ const seat=(mySeat+i)%7, info=room.seats[seat]; const [x,y]=POS[i];
+    const el=document.createElement('div'); el.className='seat'+(info.kind==='ai'?' ai':'')+(info.occupied?'':' off')+(declarers.has(seat)?' declarer':'');
+    if(V && V.currentTurn===seat) el.classList.add('turn'); el.style.left=x+'%'; el.style.top=y+'%';
+    const played=(V&&V.trickSoFar||[]).find(t=>t.seat===seat);
+    const decls=((V&&V.declareLog)||[]).filter(d=>d.player===seat);
+    const starStr=decls.length?`<span class="stars" title="${decls.map(d=>SUIT[d.suit].s+'×'+d.count+'（亮主/反）').join('　')}">${'★'.repeat(decls.length)}</span>`:'';
+    el.innerHTML=`${seat===room.dealer?'<div class="dealer">庄</div>':''}${reveal.has(seat)&&seat!==room.dealer?'<div class="friend">🤝</div>':''}
+      <div class="played"></div><div class="plate"><div class="name">${info.occupied?info.name:'空位'}${starStr}</div>
+      <div class="lvl">级 ${info.level}</div><div class="tag">${seat===mySeat?'你':info.kind==='ai'?'电脑':'玩家'}</div></div>`;
+    if(played) played.cards.forEach(c=>el.querySelector('.played').appendChild(cardEl(c)));
+    $('table').appendChild(el);
+  }
+  $('score').innerHTML = room.seats.map((s,i)=>`<div class="row ${i===mySeat?'you':''}"><span>${s.occupied?s.name:'空位'} ${i===room.dealer?'· 庄':''}</span><span class="lv">${s.level}</span></div>`).join('');
+
+  renderHand(); renderPanel();
+}
+function renderHand(){
+  const hand=$('hand'); hand.innerHTML=''; if(!V||!V.hand) return;
+  const cr=callRank(), burying = V.phase==='bury';
+  for(const {c,idx} of sortHand(V.hand)){ const el=cardEl(c);
+    if(selected.has(idx)) el.classList.add('sel');
+    if(burying && c.kind==='suited' && c.rank===cr) el.classList.add('bad'); // 叫牌点不可扣
+    el.onclick=()=>{ if(selected.has(idx)) selected.delete(idx); else selected.add(idx); render(); };
+    hand.appendChild(el);
+  }
+}
+function renderPanel(){
+  const p=$('panel'); p.innerHTML=''; if(!R) return;
+  const myTurn = V && V.currentTurn===mySeat;
+  if(R.phase!=='playing'){ p.appendChild(mkBtn('开 局',()=>send({type:'start'}))); return; }
+  if(!V) return;
+  if(!myTurn){ const t=document.createElement('span'); t.className='pill'; t.textContent='等待 座'+V.currentTurn+' 行动…'; p.appendChild(t); return; }
+
+  if(V.phase==='declare'){
+    p.appendChild(lbl(V.currentTrump?`当前主 ${SUIT[V.currentTrump.suit].s}×${V.currentTrump.count}`:'亮主（需两王+级牌）'));
+    const jok=V.hand.filter(c=>c.kind==='joker').length;
+    for(const s of SUITS){ const n=V.hand.filter(c=>c.kind==='suited'&&c.suit===s&&c.rank===V.level).length;
+      if(jok>=2 && n>=1){ const b=mkBtn(`亮 ${SUIT[s].s}(${n})`,()=>send({type:'declare',suit:s,count:n})); b.classList.add('sm'); p.appendChild(b); } }
+    p.appendChild(mkBtn('过（不亮）',()=>send({type:'pass'}),true));
+  }
+  else if(V.phase==='bury'){
+    const cr=callRank(); const sel=[...selected]; const bad=sel.some(i=>{const c=V.hand[i]; return c.kind==='suited'&&c.rank===cr;});
+    p.appendChild(lbl(`扣底 ${sel.length}/9`)); if(bad) p.appendChild(pill('⚠ 含叫牌点'+cr+'，不可扣'));
+    p.appendChild(mkBtn('确认扣底',()=>{ send({type:'bury',cards:sel.map(i=>V.hand[i])}); selected.clear(); }, false, sel.length!==9||bad));
+  }
+  else if(V.phase==='call'){
+    p.appendChild(lbl(`叫朋友（叫 2 张「第 N 张 + 花色 + ${callRank()}」）`));
+    callDraft.forEach((cd,k)=>{ const row=document.createElement('div'); row.style.cssText='display:flex;gap:4px;align-items:center';
+      SUITS.forEach(s=>{ const b=document.createElement('button'); b.className='suitbtn'+(SUIT[s].red?' red':'')+(cd.suit===s?' on':'');
+        b.textContent=SUIT[s].s; b.onclick=()=>{ callDraft[k].suit=s; render(); }; row.appendChild(b); });
+      const inp=document.createElement('input'); inp.className='numbox'; inp.type='number'; inp.min=1; inp.max=6; inp.value=cd.nth;
+      inp.onchange=()=>{ callDraft[k].nth=Math.max(1,Math.min(6,+inp.value||1)); }; row.appendChild(inp); p.appendChild(row); });
+    p.appendChild(mkBtn('确认叫朋友',()=>send({type:'call',calls:callDraft.map(c=>({suit:c.suit,nth:c.nth}))})));
+  }
+  else if(V.phase==='play'){
+    const sel=[...selected]; p.appendChild(lbl(sel.length?`已选 ${sel.length} 张`:'选牌出'));
+    p.appendChild(mkBtn('出 牌',()=>{ send({type:'play',cards:sel.map(i=>V.hand[i])}); selected.clear(); }, false, !sel.length));
+  }
+}
+function lbl(t){ const e=document.createElement('span'); e.className='lbl'; e.textContent=t; return e; }
+function pill(t){ const e=document.createElement('span'); e.className='pill'; e.textContent=t; return e; }
+function mkBtn(label,fn,ghost,dis){ const b=document.createElement('button'); b.className='btn sm'+(ghost?' ghost':''); b.textContent=label; b.disabled=!!dis; b.onclick=fn; return b; }
+function send(o){ ws && ws.readyState===1 && ws.send(JSON.stringify(o)); }
+function flash(t){ $('hint').textContent=t; }
+function logEvt(t){ const e=document.createElement('div'); e.className='e'; e.innerHTML=t; $('log').appendChild(e); $('log').scrollTop=1e9; }
+function showBanner(big,sm){ $('bannerBig').textContent=big; $('bannerSm').textContent=sm; $('banner').classList.add('show'); setTimeout(()=>$('banner').classList.remove('show'),4200); }
+
+// ── 演示态（?demo=1：展示亮主星标 + 庄队底色，无需服务端）──
+const S=(suit,rank)=>({kind:'suited',suit,rank}), J=j=>({kind:'joker',joker:j});
+if(new URLSearchParams(location.search).get('demo')){
+  mySeat=0; $('overlay').style.display='none';
+  R={ phase:'playing', dealer:0, seats:[
+    {occupied:true,name:'你',kind:'human',connected:true,level:'7'},
+    {occupied:true,name:'阿强',kind:'human',connected:true,level:'9'},
+    {occupied:true,name:'老 K',kind:'human',connected:true,level:'J'},
+    {occupied:true,name:'小雨',kind:'human',connected:true,level:'7'},
+    {occupied:true,name:'电脑·梅',kind:'ai',connected:true,level:'8'},
+    {occupied:true,name:'电脑·兰',kind:'ai',connected:true,level:'7'},
+    {occupied:true,name:'电脑·竹',kind:'ai',connected:true,level:'10'} ]};
+  V={ phase:'play', seat:0, level:'7', trump:'C', currentTurn:0,
+    trickSoFar:[ {seat:4,cards:[S('C','K')]}, {seat:5,cards:[S('C','5')]} ],
+    declareLog:[ {player:4,suit:'S',count:2}, {player:1,suit:'H',count:3}, {player:4,suit:'C',count:4} ],
+    friendsRevealed:[3,6],
+    hand:[ J('BJ'),J('LJ'), S('C','7'),S('H','7'),S('S','7'),S('D','7'), S('C','A'),S('C','K'),S('C','9'),
+      S('H','A'),S('H','Q'),S('H','8'),S('H','6'), S('S','A'),S('S','10'),S('S','5'),S('S','3'),
+      S('D','J'),S('D','8'),S('D','5'),S('D','3'),S('D','2') ] };
+  render();
+  ['<b>电脑·梅(座4)</b> 亮 ♠×2 ⭐','<b>阿强(座1)</b> 反 ♥×3 ⭐','<b>电脑·梅(座4)</b> 再反 ♣×4 → 定主 ♣（座4 两颗星）','揭示朋友：座3、座6 — 与庄同底色'].forEach(logEvt);
+}
+
+// ── 网络 ──
+async function api(path,body){ const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}); return r.json(); }
+let mode='login';
+$('regLink').onclick=()=>{ mode=mode==='login'?'register':'login'; $('loginBtn').textContent=mode==='login'?'进 牌 室':'注 册 并 进 入';
+  $('regLink').textContent=mode==='login'?'注册一个':'用已有账号登录'; $('err').textContent=''; };
+$('loginBtn').onclick=async()=>{ const u=$('u').value.trim(), pw=$('p').value; if(!u||!pw) return $('err').textContent='用户名/密码不能为空';
+  if(mode==='register'){ const r=await api('/api/register',{username:u,password:pw}); if(!r.ok) return $('err').textContent='注册失败：'+(r.error||''); }
+  const r=await api('/api/login',{username:u,password:pw}); if(!r.ok) return $('err').textContent='登录失败：'+(r.error||''); token=r.token; connect(); };
+
+function connect(){ ws=new WebSocket(`ws://${location.host}/ws?token=${token}`);
+  ws.onopen=()=>{ $('overlay').style.display='none'; flash('已连接'); };
+  ws.onclose=()=>flash('连接断开'); ws.onerror=()=>flash('连接出错');
+  ws.onmessage=(ev)=>{ const m=JSON.parse(ev.data);
+    if(m.type==='joined'||m.type==='reconnected'){ mySeat=m.seat; logEvt(`你${m.type==='reconnected'?'重连回':'入'}座 <b>座 ${m.seat}</b>`); }
+    else if(m.type==='state'){ R=m.room; V=m.view; selected.clear(); render();
+      if(m.result){ const ev=({['big-light']:'大光',['small-light']:'小光',pass:'过关',stage:'上台'})[m.result.settlement.event];
+        showBanner(ev, `闲家 ${m.result.defenderScore} 分`); logEvt(`本局结束：闲家 <b>${m.result.defenderScore}</b> 分 · ${ev}`); } }
+    else if(m.type==='error'){ flash('✗ '+m.error); }
+  };
+}
+</script>
+</body>
+</html>
